@@ -1475,6 +1475,71 @@ parts:
     build-packages:
       - pkg-config
       - cmake
+  webkitgtk-sdk:
+    after: [ gtk4, harfbuzz, cairo ]
+    #source: https://webkitgtk.org/releases/webkitgtk-2.40.1.tar.xz
+    source: https://github.com/WebKit/WebKit.git
+    source-tag: webkitgtk-2.40.1
+    source-depth: 1
+    plugin: cmake
+    cmake-parameters:
+      - -DPORT=GTK
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DCMAKE_INSTALL_PREFIX=/usr
+      - -DCMAKE_INSTALL_LIBDIR=lib
+      - -DCMAKE_INSTALL_LIBEXECDIR=lib
+      - -DCMAKE_SKIP_RPATH=ON
+      - -DUSE_AVIF=ON
+      - -DUSE_GTK4=ON
+      - -DENABLE_JOURNALD_LOG=OFF
+      - -DENABLE_DOCUMENTATION=OFF
+      - -DENABLE_MINIBROWSER=ON
+    build-packages:
+      - bubblewrap
+      - gettext
+      - gperf
+      - icu-devtools
+      - libavif-dev
+      - libcurl4-gnutls-dev
+      - libdav1d-dev
+      - libenchant-2-dev
+      - libepoxy-dev
+      - libfreetype-dev
+      - libgcrypt20-dev
+      - libghc-text-icu-dev
+      - libghc-text-icu-prof
+      - libgav1-dev
+      - libglx-dev
+      - libgstreamer1.0-dev
+      - libgstreamer-plugins-bad1.0-dev
+      - libgstreamer-plugins-base1.0-dev
+      - libgstreamer-plugins-good1.0-dev
+      - libhyphen-dev
+      - libicu-dev
+      - libicu-le-hb-dev
+      - liblcms2-dev
+      - libmanette-0.2-dev
+      - libnghttp2-dev
+      - libopenjp2-7-dev
+      - libopengl-dev
+      - libpng-dev
+      - libsoup-3.0-dev
+      - libsecret-1-dev
+      - libseccomp-dev
+      - libsqlite3-dev
+      - libtasn1-6-dev
+      - libwebp-dev
+      - libwpe-1.0-dev
+      - libwpebackend-fdo-1.0-dev
+      - libwoff-dev
+      - libxcomposite-dev
+      - libxdamage-dev
+      - libxrender-dev
+      - libxslt1-dev
+      - libxt-dev
+      - ruby-all-dev
+      - unifdef
+      - xdg-dbus-proxy
 
   debs:
     after: [ libgnome-games-support, libadwaita, libgweather, poppler, libayatana-appindicator, intel-media-driver ]
@@ -1610,10 +1675,12 @@ parts:
       cd $CRAFT_STAGE/usr/lib/$CRAFT_ARCH_TRIPLET
       find . -type f,l -exec rm -f $CRAFT_PART_INSTALL/usr/lib/{} \;
       find . -type f,l -name "*.so*" -exec bash -c "rm -f $CRAFT_PART_INSTALL/usr/lib/{}*" \;
-
+      
+      
   conditioning:
-    after: [ debs ]
+    after: [ debs, webkitgtk-sdk ]
     plugin: nil
+    stage-snaps: [ webkitgtk-sdk/latest/stable ]
     build-environment: *buildenv
     override-prime: |
       set -eux
@@ -1633,6 +1700,8 @@ parts:
         sed -i 's#prefix = /usr#prefix=/snap/gnome-42-2204-sdk/current/usr#' $PC
         sed -i 's#prefix=/usr#prefix=/snap/gnome-42-2204-sdk/current/usr#' $PC
         sed -i 's#original_prefix=/snap/gnome-42-2204-sdk/current/usr#original_prefix=/usr#' $PC
+        sed -i 's|^prefix=/build/[^/]\+/stage/usr|prefix=/snap/gnome-42-2204-sdk/current/usr|' $PC
+
 
         sed -i 's#libdir=/usr#libdir=${prefix}#' $PC
         sed -i 's#libdir=/lib#libdir=/snap/gnome-42-2204-sdk/current/lib#' $PC
@@ -1731,3 +1800,5 @@ parts:
       PATH=$OLDPATH
       echo Symbols compressed
       rm -fr $DEBUG_BUILDID
+      
+
